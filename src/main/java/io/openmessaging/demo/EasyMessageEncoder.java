@@ -29,7 +29,7 @@ public class EasyMessageEncoder implements MessageEncoder {
         }
 
         //写入headers行
-        data = (message.getHeadersLine() + SEPARATOR).getBytes();
+        //data = (message.getHeadersLine() + SEPARATOR).getBytes();
         for (int i = 0; i < data.length; i++) {
             bytesList.add(data[i]);
         }

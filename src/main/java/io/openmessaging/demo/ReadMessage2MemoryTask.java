@@ -70,9 +70,9 @@ public class ReadMessage2MemoryTask implements Runnable {
 
                         //组装消息
                         defaultBytesMessage = new DefaultBytesMessage(body);
-                        defaultBytesMessage.setHeaders(headers);
+                        //defaultBytesMessage.setHeaders(headers);
                         if (properties != null) {
-                            defaultBytesMessage.setProperties(properties);
+                            //defaultBytesMessage.setProperties(properties);
                         }
                         queue.offer(defaultBytesMessage);
                     }

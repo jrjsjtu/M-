@@ -4,173 +4,129 @@ import io.openmessaging.BytesMessage;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 
-import java.util.Arrays;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class DefaultBytesMessage implements BytesMessage {
 
-    private static final String KEY_VALUE_SPLT = ":";
-    private static final String ENTRY_VALUE = " ";
-
-    private KeyValue headers = new DefaultKeyValue();
-    private KeyValue properties;
-
-    private StringBuilder headersLine = new StringBuilder();
-    private StringBuilder propertiesLine = new StringBuilder();
-
+    KeyValue headers = new DefaultKeyValue();
+    KeyValue properties = new DefaultKeyValue();
+    private HashMap<String,byte[]> headerMap = null;
+    private HashMap<String,byte[]> propertiesMap = null;
+    int size = 0;
     private byte[] body;
 
     public DefaultBytesMessage(byte[] body) {
         this.body = body;
     }
-
-    public void setHeaders(KeyValue headers) {
-        this.headers = headers;
-    }
-
-    public String getHeadersLine() {
-        return headersLine.toString();
-    }
-
-    public String getPropertiesLine() {
-        return propertiesLine.toString();
-    }
-
-    @Override
-    public byte[] getBody() {
+    @Override public byte[] getBody() {
         return body;
     }
 
-    public void setProperties(KeyValue properties) {
-        this.properties = properties;
-        this.propertiesLine = initPropertiesLine((DefaultKeyValue) properties);
-    }
-
-    public StringBuilder initPropertiesLine(DefaultKeyValue defaultKeyValue) {
-
-        StringBuilder sb = new StringBuilder();
-        DefaultKeyValue.NewValue newValue = null;
-
-        for (String key : defaultKeyValue.keySet()) {
-            newValue = defaultKeyValue.getNewValue(key);
-            if (newValue == null) {
-                continue;
-            } else {
-                sb.append(key + KEY_VALUE_SPLT + newValue.value + KEY_VALUE_SPLT + newValue.type).append(ENTRY_VALUE);
-            }
-        }
-
-        if (sb.length() > 0) {
-            sb.deleteCharAt(sb.length() - 1);
-        }
-
-        return sb;
-    }
-
-
-    @Override
-    public BytesMessage setBody(byte[] body) {
+    @Override public BytesMessage setBody(byte[] body) {
         this.body = body;
         return this;
     }
 
-    @Override
-    public KeyValue headers() {
+    @Override public KeyValue headers() {
         return headers;
     }
 
-    @Override
-    public KeyValue properties() {
+    @Override public KeyValue properties() {
         return properties;
     }
 
-    @Override
-    public Message putHeaders(String key, int value) {
-        headers.put(key, value);
-        headersLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 0);
+
+    @Override public Message putHeaders(String key, int value) {
+        if (headerMap == null) headerMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        headerMap.put(key, tmp);
+        headers.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putHeaders(String key, long value) {
-        headers.put(key, value);
-        headersLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 1);
+    @Override public Message putHeaders(String key, long value) {
+        if (headerMap == null) headerMap = new HashMap(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        headerMap.put(key, tmp);
+        headers.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putHeaders(String key, double value) {
-        headers.put(key, value);
-        headersLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 2);
+    @Override public Message putHeaders(String key, double value) {
+        if (headerMap == null) headerMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        headerMap.put(key, tmp);
+        headers.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putHeaders(String key, String value) {
-        headers.put(key, value);
-        headersLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 3);
+    @Override public Message putHeaders(String key, String value) {
+        if (headerMap == null) headerMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        headerMap.put(key, tmp);
+        headers.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putProperties(String key, int value) {
-        if (properties == null) properties = new DefaultKeyValue();
-        properties.put(key, value);
-        propertiesLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 0);
+    @Override public Message putProperties(String key, int value) {
+        if (propertiesMap == null) propertiesMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        propertiesMap.put(key, tmp);
+        properties.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putProperties(String key, long value) {
-        if (properties == null) properties = new DefaultKeyValue();
-        properties.put(key, value);
-        propertiesLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 1);
+    @Override public Message putProperties(String key, long value) {
+        if (propertiesMap == null) propertiesMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        propertiesMap.put(key, tmp);
+        properties.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putProperties(String key, double value) {
-        if (properties == null) properties = new DefaultKeyValue();
-        properties.put(key, value);
-        propertiesLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 2);
-
+    @Override public Message putProperties(String key, double value) {
+        if (propertiesMap == null) propertiesMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        propertiesMap.put(key, tmp);
+        properties.put(key,value);
         return this;
     }
 
-    @Override
-    public Message putProperties(String key, String value) {
-        if (properties == null) properties = new DefaultKeyValue();
-        properties.put(key, value);
-        propertiesLine.append(key + KEY_VALUE_SPLT + value + KEY_VALUE_SPLT + 3);
+    @Override public Message putProperties(String key, String value) {
+        if (propertiesMap == null) propertiesMap = new HashMap<>(4);
+        byte[] tmp = typeStruct.getByteArray(value,key);
+        size += tmp.length;
+        propertiesMap.put(key, tmp);
+        properties.put(key,value);
         return this;
     }
 
-    @Override
-    public String toString() {
-        return "DefaultBytesMessage{" +
-                "headers=" +headers +
-                ", properties=" + properties +
-                ", body=" + new String(body) +
-                '}';
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        DefaultBytesMessage that = (DefaultBytesMessage) o;
-
-        if (!headers.equals(that.headers)) return false;
-        if (properties != null ? !properties.equals(that.properties) : that.properties != null) return false;
-        return Arrays.equals(body, that.body);
-
-    }
-
-    @Override
-    public int hashCode() {
-        int result = headers.hashCode();
-        result = 31 * result + (properties != null ? properties.hashCode() : 0);
-        result = 31 * result + Arrays.hashCode(body);
-        return result;
+    public byte[] getByteArray(){
+        ByteBuffer byteBuffer = ByteBuffer.allocate(body.length+size+2+4+2);
+        byteBuffer.putInt(body.length);
+        byteBuffer.put(body);
+        Iterator iter = headerMap.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            byteBuffer.put((byte[])entry.getValue());
+        }
+        byteBuffer.putChar(' ');
+        iter = propertiesMap.entrySet().iterator();
+        while (iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) iter.next();
+            byteBuffer.put((byte[])entry.getValue());
+        }
+        byteBuffer.putChar(' ');
+        return byteBuffer.array();
     }
 }

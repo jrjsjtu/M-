@@ -1,16 +1,33 @@
 package io.openmessaging.demo;
 
 import io.openmessaging.*;
+import io.openmessaging.demo.FileChannelImp.AbstractFileChannel;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultProducer implements Producer {
+    static AtomicInteger atomicInteger = new AtomicInteger(0);
     private MessageFactory messageFactory = new DefaultMessageFactory();
     private MessageStore messageStore = null;
-
+    //private FileManager fileManager = null;
     private KeyValue properties;
-
+    int pos = 0;
+    int proId;
+    RandomAccessFile randomAccessFile = null;
     public DefaultProducer(KeyValue properties) {
+        proId = atomicInteger.getAndIncrement();
         this.properties = properties;
+        //fileManager = FileManager.FileManagerFactory(properties);
         messageStore = MessageStore.getInstance(properties.getString("STORE_PATH"));
+        try {
+            randomAccessFile = new RandomAccessFile(properties.getString("STORE_PATH")+"/producer"+proId,"wr");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -41,21 +58,19 @@ public class DefaultProducer implements Producer {
 
     @Override
     public void send(Message message) {
-        if (message == null) throw new ClientOMSException("Message should not be null");
-        String topic = message.headers().getString(MessageHeader.TOPIC);
-        String queue = message.headers().getString(MessageHeader.QUEUE);
-        if ((topic == null && queue == null) || (topic != null && queue != null)) {
-            throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
+        byte[] tmp = ((DefaultBytesMessage)message).getByteArray();
+        try {
+            randomAccessFile.write(tmp,pos,tmp.length);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        messageStore.putMessage(topic != null ? topic : queue, message);
-
+        pos+=tmp.length;
     }
 
     @Override
     public void send(Message message, KeyValue properties) {
         DefaultBytesMessage bytesMessage = (DefaultBytesMessage) message;
-        bytesMessage.setProperties(properties);
+        //bytesMessage.setProperties(properties);
         send(bytesMessage);
     }
 
